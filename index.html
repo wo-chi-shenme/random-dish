@@ -485,37 +485,56 @@
         function parseAndAdd() {
             const text = document.getElementById('parseInput').value.trim();
             if (!text) { alert('请粘贴菜谱内容'); return; }
-            let name = '', ingredients = '', steps = '', time = '';
-            const markers = ['菜名', '名称', '配料', '食材', '材料', '做法', '步骤', '方法', '时间'];
-            const segments = [];
-            for (let i = 0; i < markers.length; i++) {
-                const idx = text.indexOf(markers[i]);
-                if (idx !== -1) {
-                    let colonIdx = text.indexOf('：', idx);
-                    if (colonIdx === -1 || colonIdx > idx + 4) colonIdx = text.indexOf(':', idx);
-                    if (colonIdx === -1 || colonIdx > idx + 4) colonIdx = idx + markers[i].length;
-                    segments.push({ marker: markers[i], valueStart: colonIdx + 1 });
+            let name = '', ingredients = '', steps = '', time = '', type = '', taste = '', style = '';
+            const typeMap = { '荤菜': 'meat', '素菜': 'veg', '海鲜': 'seafood', '面食': 'noodle', '熟食': 'deli', '饼类': 'pastry', '汤类': 'soup', '粥类': 'congee' };
+            const tasteMap = { '辣': 'spicy', '不辣': 'mild' };
+            const styleMap = { '川菜': 'sichuan', '粤菜': 'cantonese', '东北菜': 'dongbei', '潮汕菜': 'chaoshan', '家常菜': 'home' };
+            function extractField(label) {
+                const idx = text.indexOf(label);
+                if (idx === -1) return '';
+                const start = idx + label.length;
+                const rest = text.substring(start);
+                const colonMatch = rest.match(/^[：:]\s*/);
+                const valStart = colonMatch ? start + colonMatch[0].length : start;
+                const nextLabels = ['菜名', '名称', '类型', '口味', '菜系', '时间', '配料', '食材', '做法', '步骤'];
+                let end = text.length;
+                for (let i = 0; i < nextLabels.length; i++) {
+                    const nextIdx = text.indexOf(nextLabels[i], valStart);
+                    if (nextIdx !== -1 && nextIdx < end) end = nextIdx;
                 }
+                const dotIdx = text.indexOf('•', valStart);
+                if (dotIdx !== -1 && dotIdx < end) end = dotIdx;
+                return text.substring(valStart, end).trim();
             }
-            segments.sort((a, b) => a.valueStart - b.valueStart);
-            for (let i = 0; i < segments.length; i++) {
-                const seg = segments[i];
-                const nextStart = i < segments.length - 1 ? segments[i + 1].valueStart : text.length;
-                const value = text.substring(seg.valueStart, nextStart).trim();
-                if (seg.marker === '菜名' || seg.marker === '名称') name = value;
-                else if (seg.marker === '配料' || seg.marker === '食材' || seg.marker === '材料') ingredients = value;
-                else if (seg.marker === '做法' || seg.marker === '步骤' || seg.marker === '方法') steps = value;
-                else if (seg.marker === '时间') time = value;
-            }
+            name = extractField('菜名');
+            if (!name) name = extractField('名称');
+            type = extractField('类型');
+            taste = extractField('口味');
+            style = extractField('菜系');
+            time = extractField('时间');
+            ingredients = extractField('配料');
+            if (!ingredients) ingredients = extractField('食材');
+            if (!ingredients) ingredients = extractField('材料');
+            steps = extractField('做法');
+            if (!steps) steps = extractField('步骤');
+            if (steps) steps = steps.replace(/•/g, '\n').replace(/\.\s*/g, '.\n');
             if (!time) { const t = text.match(/(\d+\s*分钟|\d+\s*小时)/); if (t) time = t[1]; }
+            let typeVal = 'meat';
+            if (type && typeMap[type]) typeVal = typeMap[type];
+            else typeVal = guessType(text);
+            let tasteVal = 'mild';
+            if (taste && tasteMap[taste]) tasteVal = tasteMap[taste];
+            else tasteVal = guessTaste(text);
+            let styleVal = 'home';
+            if (style && styleMap[style]) styleVal = styleMap[style];
+            else styleVal = guessStyle(text);
             if (!name) name = '未命名菜品';
             if (!ingredients) ingredients = '待补充';
             if (!steps) steps = '待补充';
             const emojis = { meat: '🥩', veg: '🥬', seafood: '🦐', noodle: '🍜', deli: '🍖', pastry: '🫓', soup: '🥣', congee: '🍚' };
-            const type = guessType(text);
             const dish = {
-                name: name.slice(0, 20), type: type, taste: guessTaste(text), style: guessStyle(text),
-                time: time || '未知', emoji: emojis[type] || '🍽️', ingredients, steps
+                name: name.slice(0, 20), type: typeVal, taste: tasteVal, style: styleVal,
+                time: time || '未知', emoji: emojis[typeVal] || '🍽️', ingredients, steps
             };
             document.getElementById('parseResult').innerHTML =
                 '<div style="background:#f0f8ff;padding:15px;border-radius:10px;">' +
@@ -542,19 +561,19 @@
             }
         }
         function guessType(text) {
-            if (/海鲜|虾|蟹|鱼|贝|鱿/.test(text)) return 'seafood';
-            if (/面|粉|米粉/.test(text)) return 'noodle';
-            if (/汤|羹/.test(text)) return 'soup';
-            if (/粥|稀饭/.test(text)) return 'congee';
-            if (/饼|煎饼/.test(text)) return 'pastry';
-            if (/熟食|卤|酱肉|烤/.test(text)) return 'deli';
-            if (/豆腐|菜|菇|蛋|瓜|豆|茄|土豆|白菜|青菜/.test(text)) return 'veg';
+            if (/海鲜|虾|蟹|贝|鱿|海参/.test(text)) return 'seafood';
+            if (/煮面|拉面|拌面|炒面|面条|粉条|米粉|河粉/.test(text)) return 'noodle';
+            if (/汤$|羹$|汤类/.test(text)) return 'soup';
+            if (/粥$|稀饭|粥类/.test(text)) return 'congee';
+            if (/饼$|馅饼|煎饼|饼类/.test(text)) return 'pastry';
+            if (/熟食|卤|酱肉|烤鸡|烤鸭/.test(text)) return 'deli';
+            if (/豆腐|蔬菜|素菜|菌菇|蛋类|黄瓜|茄子|土豆|白菜|青菜|菠菜|芹菜|空心菜|生菜|豆芽|青椒/.test(text)) return 'veg';
             return 'meat';
         }
         function guessTaste(text) { return /辣|麻辣|香辣|酸辣/.test(text) ? 'spicy' : 'mild'; }
         function guessStyle(text) {
-            if (/川|麻辣|回锅|水煮|鱼香/.test(text)) return 'sichuan';
-            if (/粤|广式|白灼|白切|蒸/.test(text)) return 'cantonese';
+            if (/川菜|麻辣|回锅|水煮|鱼香/.test(text)) return 'sichuan';
+            if (/粤菜|广式|白灼|白切|蒸鱼/.test(text)) return 'cantonese';
             if (/东北|乱炖/.test(text)) return 'dongbei';
             if (/潮汕|牛肉丸/.test(text)) return 'chaoshan';
             return 'home';
