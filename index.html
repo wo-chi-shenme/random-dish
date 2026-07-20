@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>今天吃什么</title>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAvffVfDnRw71BStL45YN37Jt9dE-4Vv1s",
+            authDomain: "dish-app-6eac6.firebaseapp.com",
+            databaseURL: "https://dish-app-6eac6-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "dish-app-6eac6",
+            storageBucket: "dish-app-6eac6.firebasestorage.app",
+            messagingSenderId: "824181150151",
+            appId: "1:824181150151:web:e713331a796612442ac9e2"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const dishesRef = ref(db, 'dishes');
+
+        let allDishes = [];
+
+        onValue(dishesRef, (snapshot) => {
+            const data = snapshot.val();
+            allDishes = data ? Object.entries(data).map(([id, dish]) => ({ id, ...dish })) : [];
+            renderDishList();
+        });
+
+        function renderDishList() {
+            const list = document.getElementById('dishList');
+            list.innerHTML = allDishes.map(dish => `
+                <div class="dish-item">
+                    <span class="dish-emoji">${dish.emoji || '🍽️'}</span>
+                    <div class="dish-info">
+                        <strong>${dish.name}</strong>
+                        <small>${dish.type === 'meat' ? '荤菜' : dish.type === 'veg' ? '素菜' : '家常'} · ${dish.time || '未知'}</small>
+                    </div>
+                    <button class="delete-btn" onclick="deleteDish('${dish.id}')">✕</button>
+                </div>
+            `).join('');
+        }
+
+        window.deleteDish = async function(id) {
+            if (confirm('确定删除这道菜？')) {
+                await remove(ref(db, 'dishes/' + id));
+            }
+        }
+
+        window.randomDish = function() {
+            if (allDishes.length === 0) {
+                alert('还没有菜谱，先添加几道菜吧！');
+                return;
+            }
+            const dish = allDishes[Math.floor(Math.random() * allDishes.length)];
+            document.getElementById('result').innerHTML = `
+                <div class="result-card">
+                    <span class="result-emoji">${dish.emoji || '🍽️'}</span>
+                    <h2>${dish.name}</h2>
+                    <p class="result-meta">${dish.type === 'meat' ? '荤菜' : dish.type === 'veg' ? '素菜' : '家常'} · ${dish.time || '未知'}</p>
+                    <div class="result-section">
+                        <strong>配料：</strong>
+                        <p>${dish.ingredients || '暂无'}</p>
+                    </div>
+                    <div class="result-section">
+                        <strong>做法：</strong>
+                        <p>${(dish.steps || '暂无').replace(/\n/g, '<br>')}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        window.addDish = async function() {
+            const name = document.getElementById('name').value.trim();
+            if (!name) { alert('请输入菜名'); return; }
+
+            const dish = {
+                name: name,
+                type: document.getElementById('type').value,
+                taste: document.getElementById('taste').value,
+                time: document.getElementById('time').value || '未知',
+                emoji: document.getElementById('emoji').value || '🍽️',
+                ingredients: document.getElementById('ingredients').value,
+                steps: document.getElementById('steps').value
+            };
+
+            await push(dishesRef, dish);
+            document.getElementById('name').value = '';
+            document.getElementById('ingredients').value = '';
+            document.getElementById('steps').value = '';
+        }
+
+        window.showPanel = function(panel) {
+            document.getElementById('homePanel').style.display = panel === 'home' ? 'block' : 'none';
+            document.getElementById('addPanel').style.display = panel === 'add' ? 'block' : 'none';
+            document.getElementById('listPanel').style.display = panel === 'list' ? 'block' : 'none';
+        }
+    </script>
+    
+</head>
+<body>
+    <div class="container">
+        <h1>🍽️ 今天吃什么</h1>
+        
+        <div class="nav">
+            <button class="nav-btn active" onclick="showPanel('home')">🎲 随机</button>
+            <button class="nav-btn" onclick="showPanel('add')">➕ 添加</button>
+            <button class="nav-btn" onclick="showPanel('list')">📋 菜单</button>
+        </div>
+
+        <div id="homePanel" class="panel">
+            <button class="random-btn" onclick="randomDish()">🎲 随机选一道菜</button>
+            <div id="result"></div>
+        </div>
+
+        <div id="addPanel" class="panel" style="display:none">
+            <div class="form-group">
+                <label>菜名 *</label>
+                <input type="text" id="name" placeholder="西红柿炒鸡蛋">
+            </div>
+            <div class="form-group">
+                <label>图标</label>
+                <input type="text" id="emoji" placeholder="🍅（可选）">
+            </div>
+            <div class="form-group">
+                <label>类型</label>
+                <select id="type">
+                    <option value="home">家常</option>
+                    <option value="meat">荤菜</option>
+                    <option value="veg">素菜</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>口味</label>
+                <select id="taste">
+                    <option value="salty">咸鲜</option>
+                    <option value="sweet">甜</option>
+                    <option value="sour">酸</option>
+                    <option value="spicy">辣</option>
+                    <option value="light">清淡</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>时间</label>
+                <input type="text" id="time" placeholder="15分钟">
+            </div>
+            <div class="form-group">
+                <label>配料</label>
+                <textarea id="ingredients" placeholder="西红柿2个、鸡蛋3个..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>做法</label>
+                <textarea id="steps" placeholder="1. 第一步...&#10;2. 第二步..."></textarea>
+            </div>
+            <button class="submit-btn" onclick="addDish()">添加菜谱</button>
+        </div>
+
+        <div id="listPanel" class="panel" style="display:none">
+            <div id="dishList">
+                <p style="text-align:center;color:#888">加载中...</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
