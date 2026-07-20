@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>今天吃什么</title>
+    
+</head>
+<body>
+    <div class="container">
+        <h1>🍽️ 今天吃什么</h1>
+        <p class="subtitle">选择困难症终结者</p>
+        
+        <div class="section">
+            <div class="section-title">📌 选择类型</div>
+            <div class="tags" id="typeTags">
+                <div class="tag active" data-type="all">全部</div>
+                <div class="tag" data-type="meat">🥩 荤菜</div>
+                <div class="tag" data-type="veg">🥬 素菜</div>
+                <div class="tag" data-type="seafood">🦐 海鲜</div>
+                <div class="tag" data-type="noodle">🍜 面食</div>
+                <div class="tag" data-type="deli">🍖 熟食</div>
+                <div class="tag" data-type="pastry">🫓 饼类</div>
+                <div class="tag" data-type="soup">🥣 汤类</div>
+                <div class="tag" data-type="congee">🍚 粥类</div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">🔥 选择口味</div>
+            <div class="tags" id="tasteTags">
+                <div class="tag active" data-taste="all">全部</div>
+                <div class="tag" data-taste="spicy">🌶️ 辣</div>
+                <div class="tag" data-taste="notspicy">🫕 不辣</div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">🥢 选择菜系</div>
+            <div class="tags" id="styleTags">
+                <div class="tag active" data-style="all">全部</div>
+                <div class="tag" data-style="sichuan">🌶️ 川菜</div>
+                <div class="tag" data-style="cantonese">🥢 粤菜</div>
+                <div class="tag" data-style="dongbei">🥟 东北菜</div>
+                <div class="tag" data-style="chaoshan">🍲 潮汕菜</div>
+                <div class="tag" data-style="home">🏠 家常菜</div>
+            </div>
+        </div>
+        
+        <button class="random-btn" onclick="randomDish()">🎲 随机选一个！</button>
+        
+        <div class="result" id="result">
+            <div class="result-emoji" id="resultEmoji">🍽️</div>
+            <div class="result-name" id="resultName">点击下方按钮</div>
+            <div class="result-tags" id="resultTags"></div>
+            <div id="resultDetails" style="display:none">
+                <div class="detail-time" id="resultTime"></div>
+                <div class="detail-section">
+                    <div class="detail-title">📋 配料</div>
+                    <div class="detail-content" id="resultIngredients"></div>
+                </div>
+                <div class="detail-section">
+                    <div class="detail-title">👨‍🍳 做法</div>
+                    <div class="detail-content" id="resultSteps"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="manage-section">
+            <button class="manage-btn" onclick="showAddModal()">➕ 添加新菜品</button>
+        </div>
+    </div>
+
+    <div class="modal" id="addModal">
+        <div class="modal-content">
+            <div class="modal-title">➕ 添加新菜品</div>
+            <div class="form-group">
+                <label class="form-label">菜品名称 *</label>
+                <input type="text" class="form-input" id="addName" placeholder="如：红烧肉">
+            </div>
+            <div class="form-group">
+                <label class="form-label">类型</label>
+                <select class="form-select" id="addType">
+                    <option value="meat">🥩 荤菜</option>
+                    <option value="veg">🥬 素菜</option>
+                    <option value="seafood">🦐 海鲜</option>
+                    <option value="noodle">🍜 面食</option>
+                    <option value="deli">🍖 熟食</option>
+                    <option value="pastry">🫓 饼类</option>
+                    <option value="soup">🥣 汤类</option>
+                    <option value="congee">🍚 粥类</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">口味</label>
+                <select class="form-select" id="addTaste">
+                    <option value="spicy">🌶️ 辣</option>
+                    <option value="notspicy">🫕 不辣</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">菜系</label>
+                <select class="form-select" id="addStyle">
+                    <option value="sichuan">🌶️ 川菜</option>
+                    <option value="cantonese">🥢 粤菜</option>
+                    <option value="dongbei">🥟 东北菜</option>
+                    <option value="chaoshan">🍲 潮汕菜</option>
+                    <option value="home">🏠 家常菜</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">配料</label>
+                <textarea class="form-textarea" id="addIngredients" placeholder="如：五花肉500g、冰糖、生抽、老抽"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">做法</label>
+                <textarea class="form-textarea" id="addSteps" placeholder="如：1. 五花肉切块焯水&#10;2. 锅中放油炒糖色&#10;3. 加入五花肉翻炒"></textarea>
+            </div>
+            <div class="modal-btns">
+                <button class="modal-btn modal-btn-cancel" onclick="closeAddModal()">取消</button>
+                <button class="modal-btn modal-btn-confirm" onclick="addDish()">添加</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let dishes = [
+            { name: '红烧肉', type: 'meat', taste: 'notspicy', style: 'home', time: '90分钟', emoji: '🥩', ingredients: '五花肉500g、冰糖30g、生抽2勺、老抽1勺、料酒、八角、桂皮、姜片', steps: '1. 五花肉切块，冷水下锅焯水去腥\n2. 锅中放少许油，小火炒化冰糖至枣红色\n3. 放入五花肉翻炒上色\n4. 加入姜片、八角、桂皮炒香\n5. 倒入料酒、生抽、老抽\n6. 加热水没过肉，大火烧开转小火炖60分钟\n7. 大火收汁即可' },
+            { name: '可乐鸡翅', type: 'meat', taste: 'notspicy', style: 'home', time: '40分钟', emoji: '🍗', ingredients: '鸡翅8个、可乐1罐、生抽2勺、老抽1勺、姜片、料酒', steps: '1. 鸡翅两面划刀，冷水下锅焯水\n2. 锅中放油，煎鸡翅至两面金黄\n3. 加入姜片、料酒、生抽、老抽\n4. 倒入可乐没过鸡翅\n5. 大火烧开转小火炖20分钟\n6. 大火收汁至浓稠' },
+            { name: '麻婆豆腐', type: 'veg', taste: 'spicy', style: 'sichuan', time: '20分钟', emoji: '🫕', ingredients: '嫩豆腐1盒、猪肉末100g、豆瓣酱1勺、花椒粉、辣椒面、葱花', steps: '1. 豆腐切小块，开水焯烫备用\n2. 锅中放油，炒香肉末\n3. 加入豆瓣酱炒出红油\n4. 加适量水烧开\n5. 放入豆腐，小火炖5分钟\n6. 勾薄芡，撒花椒粉和葱花' },
+            { name: '番茄炒蛋', type: 'veg', taste: 'notspicy', style: 'home', time: '15分钟', emoji: '🍅', ingredients: '番茄2个、鸡蛋3个、葱花、白糖1勺、盐', steps: '1. 番茄切块，鸡蛋打散\n2. 锅中放油，炒蛋液凝固盛出\n3. 锅中放油，炒番茄出汁\n4. 加入白糖、盐调味\n5. 倒入炒好的鸡蛋翻炒均匀' },
+            { name: '蒜蓉虾', type: 'seafood', taste: 'notspicy', style: 'cantonese', time: '25分钟', emoji: '🦐', ingredients: '大虾500g、蒜末大量、粉丝、生抽、料酒、葱花', steps: '1. 大虾开背去虾线\n2. 粉丝泡软铺盘底\n3. 虾摆好，浇上蒜蓉\n4. 淋上生抽和料酒\n5. 上锅蒸8分钟\n6. 撒葱花，浇热油' },
+            { name: '酸菜鱼', type: 'seafood', taste: 'spicy', style: 'sichuan', time: '40分钟', emoji: '🐟', ingredients: '草鱼片500g、酸菜200g、花椒、干辣椒、蛋清、淀粉', steps: '1. 鱼片用蛋清、淀粉、盐腌制\n2. 酸菜切段，炒香盛出\n3. 锅中放油，炒香花椒和干辣椒\n4. 加入酸菜和水烧开\n5. 鱼片逐片放入，煮至变色\n6. 淋热油激香' },
+            { name: '炸酱面', type: 'noodle', taste: 'notspicy', style: 'dongbei', time: '30分钟', emoji: '🍜', ingredients: '面条300g、猪肉末200g、甜面酱3勺、黄瓜丝、黄豆', steps: '1. 锅中放油，炒香肉末\n2. 加入甜面酱小火炒香\n3. 加少许水煮至浓稠\n4. 面条煮熟捞出\n5. 浇上炸酱，放黄瓜丝和黄豆' },
+            { name: '肉夹馍', type: 'pastry', taste: 'notspicy', style: 'home', time: '120分钟', emoji: '🫓', ingredients: '面粉500g、五花肉500g、卤肉料包、香菜、青椒', steps: '1. 面粉加酵母和面，醒发\n2. 五花肉卤至软烂\n3. 面团分成小剂子，擀成饼\n4. 平底锅烙至两面金黄\n5. 馍切开，夹入剁碎的卤肉\n6. 加香菜和青椒' },
+            { name: '皮蛋瘦肉粥', type: 'congee', taste: 'notspicy', style: 'cantonese', time: '60分钟', emoji: '🍚', ingredients: '大米100g、皮蛋2个、瘦肉150g、姜丝、葱花、盐', steps: '1. 大米洗净，加水大火烧开\n2. 瘦肉切丝，用盐和淀粉腌制\n3. 皮蛋切小块\n4. 粥煮至浓稠，加入肉丝煮熟\n5. 加入皮蛋煮5分钟\n6. 加盐调味，撒葱花' },
+            { name: '酸辣汤', type: 'soup', taste: 'spicy', style: 'home', time: '20分钟', emoji: '🥣', ingredients: '豆腐半块、木耳、鸡蛋1个、香肠、醋2勺、白胡椒粉', steps: '1. 豆腐、木耳、香肠切丝\n2. 锅中加水烧开\n3. 放入所有配料煮熟\n4. 加入醋和白胡椒粉\n5. 勾薄芡，打入蛋花\n6. 撒香菜即可' },
+            { name: '干锅花菜', type: 'veg', taste: 'spicy', style: 'sichuan', time: '20分钟', emoji: '🥬', ingredients: '花菜1个、五花肉100g、干辣椒、蒜片、生抽', steps: '1. 花菜掰小朵，洗净沥干\n2. 五花肉切片\n3. 锅中放油，煸炒五花肉出油\n4. 加入干辣椒和蒜片炒香\n5. 放入花菜大火翻炒\n6. 加生抽调味' },
+            { name: '手撕包菜', type: 'veg', taste: 'spicy', style: 'home', time: '15分钟', emoji: '🥬', ingredients: '包菜半个、干辣椒、蒜末、醋、生抽', steps: '1. 包菜手撕成片\n2. 锅中放油，爆香干辣椒和蒜末\n3. 放入包菜大火翻炒\n4. 加醋和生抽\n5. 炒至断生即可' },
+            { name: '红烧排骨', type: 'meat', taste: 'notspicy', style: 'home', time: '60分钟', emoji: '🥩', ingredients: '排骨500g、冰糖、生抽、老抽、料酒、八角、姜片', steps: '1. 排骨冷水下锅焯水\n2. 锅中炒糖色至枣红色\n3. 放入排骨翻炒上色\n4. 加料酒、生抽、老抽\n5. 加热水没过排骨\n6. 小火炖45分钟，大火收汁' },
+            { name: '宫保鸡丁', type: 'meat', taste: 'spicy', style: 'sichuan', time: '25分钟', emoji: '🍗', ingredients: '鸡胸肉300g、花生米、干辣椒、花椒、黄瓜丁、胡萝卜丁', steps: '1. 鸡肉切丁，用料酒、淀粉腌制\n2. 调碗汁：醋、糖、生抽、淀粉\n3. 锅中放油，炒花椒和干辣椒\n4. 放入鸡丁炒散\n5. 加入蔬菜丁翻炒\n6. 倒入碗汁，撒花生米' },
+            { name: '韭菜盒子', type: 'pastry', taste: 'notspicy', style: 'home', time: '40分钟', emoji: '🫓', ingredients: '面粉300g、韭菜200g、鸡蛋3个、粉丝、虾皮', steps: '1. 面粉加开水和面，醒发\n2. 韭菜切碎，鸡蛋炒碎\n3. 粉丝泡软切碎\n4. 所有馅料加盐、油拌匀\n5. 面团擀皮，包入馅料\n6. 平底锅煎至两面金黄' },
+            { name: '红油抄手', type: 'noodle', taste: 'spicy', style: 'sichuan', time: '30分钟', emoji: '🍜', ingredients: '馄饨皮500g、猪肉馅300g、红油、花椒油、生抽、醋、蒜泥', steps: '1. 肉馅加盐、料酒拌匀\n2. 包成馄饨\n3. 调料汁：红油、花椒油、生抽、醋、蒜泥\n4. 馄饨煮熟捞出\n5. 浇上调料汁\n6. 撒葱花和花生碎' },
+            { name: '清蒸鲈鱼', type: 'seafood', taste: 'notspicy', style: 'cantonese', time: '25分钟', emoji: '🐟', ingredients: '鲈鱼1条、葱丝、姜丝、蒸鱼豉油、料酒', steps: '1. 鲈鱼处理干净，两面划刀\n2. 抹料酒和盐腌制10分钟\n3. 鱼肚塞姜丝，上锅蒸8分钟\n4. 倒掉蒸出的水\n5. 铺上葱丝姜丝\n6. 淋热油和蒸鱼豉油' },
+            { name: '香菇滑鸡', type: 'meat', taste: 'notspicy', style: 'cantonese', time: '35分钟', emoji: '🍗', ingredients: '鸡腿肉400g、香菇、生抽、蚝油、淀粉、姜片', steps: '1. 鸡肉切块，用调料腌制30分钟\n2. 香菇切片铺盘底\n3. 鸡肉放在香菇上\n4. 上锅蒸15分钟\n5. 出锅撒葱花' },
+            { name: '东北乱炖', type: 'soup', taste: 'notspicy', style: 'dongbei', time: '40分钟', emoji: '🥣', ingredients: '土豆、茄子、青椒、西红柿、猪肉片、生抽', steps: '1. 所有蔬菜切块\n2. 锅中放油，炒肉片\n3. 加入土豆和茄子翻炒\n4. 加入西红柿和水\n5. 炖至软烂\n6. 加青椒和调味料' },
+            { name: '葱油拌面', type: 'noodle', taste: 'notspicy', style: 'home', time: '20分钟', emoji: '🍜', ingredients: '面条200g、小葱一大把、生抽、老抽、白糖', steps: '1. 小葱切段\n2. 锅中放油，小火熬葱油至葱焦黄\n3. 加入生抽、老抽、白糖搅匀\n4. 面条煮熟捞出\n5. 浇上葱油拌匀' },
+            { name: '口水鸡', type: 'meat', taste: 'spicy', style: 'sichuan', time: '40分钟', emoji: '🍗', ingredients: '鸡腿2个、红油、花椒油、生抽、醋、白糖、花生碎', steps: '1. 鸡腿冷水下锅，加姜片料酒煮熟\n2. 捞出过冰水\n3. 调料汁：红油、花椒油、生抽、醋、糖\n4. 鸡肉切块摆盘\n5. 浇上料汁\n6. 撒花生碎和葱花' },
+            { name: '炒河粉', type: 'noodle', taste: 'notspicy', style: 'cantonese', time: '15分钟', emoji: '🍜', ingredients: '河粉300g、豆芽、鸡蛋、生抽、老抽', steps: '1. 河粉提前泡软\n2. 鸡蛋炒散盛出\n3. 锅中放油，炒豆芽\n4. 加入河粉翻炒\n5. 加生抽老抽调味\n6. 放入鸡蛋炒匀' },
+            { name: '糖醋里脊', type: 'meat', taste: 'notspicy', style: 'home', time: '30分钟', emoji: '🥩', ingredients: '猪里脊300g、番茄酱、醋、白糖、淀粉', steps: '1. 里脊切条，裹淀粉\n2. 油温六成热炸至金黄\n3. 复炸一次至酥脆\n4. 锅中放番茄酱、醋、糖熬汁\n5. 倒入里脊快速翻炒\n6. 出锅撒芝麻' },
+            { name: '蚝油生菜', type: 'veg', taste: 'notspicy', style: 'cantonese', time: '10分钟', emoji: '🥬', ingredients: '生菜2棵、蚝油、蒜末、生抽', steps: '1. 生菜洗净\n2. 水烧开，加盐和油\n3. 生菜焯水10秒捞出\n4. 锅中放油，炒蒜末\n5. 加蚝油和生抽调汁\n6. 浇在生菜上' },
+            { name: '土豆烧牛肉', type: 'meat', taste: 'notspicy', style: 'home', time: '90分钟', emoji: '🥩', ingredients: '牛肉500g、土豆2个、八角、桂皮、生抽、老抽', steps: '1. 牛肉切块焯水\n2. 锅中放油，炒牛肉\n3. 加调料和热水\n4. 小火炖60分钟\n5. 加入土豆块\n6. 炖至土豆软烂' },
+            { name: '辣椒炒肉', type: 'meat', taste: 'spicy', style: 'home', time: '15分钟', emoji: '🌶️', ingredients: '五花肉200g、青椒3个、蒜片、生抽', steps: '1. 五花肉切片，青椒切块\n2. 锅中放油，煸炒五花肉出油\n3. 加蒜片炒香\n4. 放入青椒大火翻炒\n5. 加生抽调味\n6. 炒至青椒断生' },
+            { name: '红烧茄子', type: 'veg', taste: 'notspicy', style: 'home', time: '20分钟', emoji: '🍆', ingredients: '茄子2个、蒜末、生抽、老抽、白糖', steps: '1. 茄子切滚刀块，撒盐腌出水\n2. 挤干水分\n3. 锅中放油，煎茄子至软\n4. 加蒜末炒香\n5. 加生抽、老抽、糖和少许水\n6. 焖煮2分钟收汁' },
+            { name: '蒜苗回锅肉', type: 'meat', taste: 'spicy', style: 'sichuan', time: '30分钟', emoji: '🥩', ingredients: '五花肉300g、蒜苗、豆瓣酱、甜面酱、料酒', steps: '1. 五花肉整块煮熟，切薄片\n2. 蒜苗切段\n3. 锅中放油，煸炒五花肉出油\n4. 加豆瓣酱和甜面酱炒香\n5. 放入蒜苗翻炒\n6. 加料酒调味' },
+            { name: '紫菜蛋花汤', type: 'soup', taste: 'notspicy', style: 'home', time: '10分钟', emoji: '🥣', ingredients: '紫菜、鸡蛋1个、虾皮、香菜、盐、香油', steps: '1. 紫菜撕小片\n2. 水烧开\n3. 放入紫菜和虾皮\n4. 打入蛋花\n5. 加盐调味\n6. 淋香油撒香菜' },
+            { name: '番茄鸡蛋面', type: 'noodle', taste: 'notspicy', style: 'home', time: '15分钟', emoji: '🍜', ingredients: '面条200g、番茄2个、鸡蛋2个、葱花、盐', steps: '1. 番茄切块，鸡蛋打散\n2. 锅中放油，炒蛋液盛出\n3. 炒番茄出汁\n4. 加水烧开\n5. 下面条煮熟\n6. 放入鸡蛋，加盐调味' },
+            { name: '白切鸡', type: 'meat', taste: 'notspicy', style: 'cantonese', time: '50分钟', emoji: '🍗', ingredients: '三黄鸡1只、姜、葱、沙姜、香油', steps: '1. 鸡洗净\n2. 水烧开，放入鸡煮3分钟\n3. 关火焖20分钟\n4. 捞出过冰水\n5. 蘸料：沙姜、葱油、香油\n6. 鸡切块摆盘' },
+            { name: '西芹炒百合', type: 'veg', taste: 'notspicy', style: 'home', time: '15分钟', emoji: '🥬', ingredients: '西芹200g、百合100g、蒜片、盐', steps: '1. 西芹切段，百合成片\n2. 水烧开，焯水30秒\n3. 锅中放油，炒蒜片\n4. 放入西芹和百合翻炒\n5. 加盐调味\n6. 炒至断生' },
+            { name: '水煮肉片', type: 'meat', taste: 'spicy', style: 'sichuan', time: '30分钟', emoji: '🥩', ingredients: '猪里脊300g、豆芽、干辣椒、花椒、豆瓣酱', steps: '1. 里脊切片，用蛋清淀粉腌制\n2. 豆芽焯水铺碗底\n3. 锅中放油，炒豆瓣酱\n4. 加水烧开，下肉片煮熟\n5. 连汤倒在豆芽上\n6. 撒辣椒花椒，浇热油' },
+            { name: '干煸四季豆', type: 'veg', taste: 'spicy', style: 'sichuan', time: '20分钟', emoji: '🥬', ingredients: '四季豆300g、猪肉末100g、干辣椒、芽菜', steps: '1. 四季豆掰段\n2. 锅中放油，炸四季豆至表皮起皱\n3. 锅留底油，炒肉末\n4. 加干辣椒和芽菜炒香\n5. 倒入四季豆翻炒\n6. 加盐调味' },
+            { name: '牛肉拉面', type: 'noodle', taste: 'spicy', style: 'home', time: '180分钟', emoji: '🍜', ingredients: '面粉500g、牛肉500g、牛骨、萝卜、香菜、辣椒油', steps: '1. 牛骨和牛肉炖汤3小时\n2. 面粉加蓬灰水和面\n3. 醒面后拉成面条\n4. 牛肉切片\n5. 面条煮熟捞碗\n6. 加牛肉、萝卜、香菜、辣椒油' },
+            { name: '韭菜炒蛋', type: 'veg', taste: 'notspicy', style: 'home', time: '10分钟', emoji: '🥚', ingredients: '韭菜200g、鸡蛋3个、盐', steps: '1. 韭菜切段\n2. 鸡蛋打散\n3. 锅中放油，炒蛋液\n4. 蛋液凝固盛出\n5. 锅中放油，炒韭菜\n6. 倒入鸡蛋翻炒，加盐' },
+            { name: '蒜蓉西兰花', type: 'veg', taste: 'notspicy', style: 'home', time: '10分钟', emoji: '🥦', ingredients: '西兰花1个、蒜末、蚝油、盐', steps: '1. 西兰花掰小朵，洗净\n2. 水烧开，焯水1分钟\n3. 锅中放油，炒蒜末\n4. 放入西兰花翻炒\n5. 加蚝油和盐\n6. 炒匀出锅' },
+            { name: '凉拌黄瓜', type: 'veg', taste: 'spicy', style: 'home', time: '10分钟', emoji: '🥒', ingredients: '黄瓜2根、蒜末、辣椒油、醋、生抽、白糖', steps: '1. 黄瓜拍碎切段\n2. 加盐腌10分钟\n3. 挤掉水分\n4. 加蒜末、辣椒油\n5. 加醋、生抽、白糖拌匀\n6. 冷藏后更佳' },
+            { name: '葱爆羊肉', type: 'meat', taste: 'notspicy', style: 'dongbei', time: '15分钟', emoji: '🥩', ingredients: '羊肉片300g、大葱2根、生抽、料酒、醋', steps: '1. 大葱切段\n2. 锅中放油，大火炒羊肉变色\n3. 加料酒和生抽\n4. 放入大葱\n5. 大火快炒\n6. 淋少许醋出锅' },
+            { name: '炸鸡排', type: 'meat', taste: 'notspicy', style: 'home', time: '25分钟', emoji: '🍗', ingredients: '鸡胸肉1块、面包糠、鸡蛋、淀粉、盐、黑胡椒', steps: '1. 鸡胸肉片开，用刀背拍松\n2. 用盐和黑胡椒腌制\n3. 依次裹淀粉、蛋液、面包糠\n4. 油温170度炸至金黄\n5. 复炸一次更酥脆\n6. 切块配番茄酱' },
+            { name: '香菇青菜', type: 'veg', taste: 'notspicy', style: 'home', time: '10分钟', emoji: '🥬', ingredients: '香菇100g、青菜200g、蒜末、蚝油', steps: '1. 香菇切片，青菜洗净\n2. 水烧开，青菜焯水捞出\n3. 锅中放油，炒蒜末\n4. 放入香菇炒软\n5. 加蚝油调味\n6. 青菜摆盘，浇上香菇' },
+            { name: '烤冷面', type: 'noodle', taste: 'spicy', style: 'dongbei', time: '15分钟', emoji: '🫓', ingredients: '烤冷面1张、鸡蛋1个、香肠、洋葱、甜面酱、辣椒酱', steps: '1. 平底锅放油，放冷面\n2. 打个鸡蛋摊平\n3. 翻面，刷甜面酱和辣椒酱\n4. 放香肠和洋葱\n5. 卷起来\n6. 切段装盘' },
+            { name: '西红柿炖牛腩', type: 'meat', taste: 'notspicy', style: 'home', time: '120分钟', emoji: '🥩', ingredients: '牛腩500g、番茄3个、姜片、料酒、盐', steps: '1. 牛腩切块焯水\n2. 番茄去皮切块\n3. 锅中放油，炒番茄出汁\n4. 放入牛腩和热水\n5. 加料酒和姜片\n6. 小火炖至软烂加盐' },
+            { name: '蒜泥白肉', type: 'meat', taste: 'notspicy', style: 'sichuan', time: '40分钟', emoji: '🥩', ingredients: '五花肉500g、蒜泥、辣椒油、生抽、白糖', steps: '1. 五花肉整块煮熟\n2. 捞出放凉\n3. 切成薄片摆盘\n4. 调蒜泥汁：蒜泥、辣椒油、生抽、糖\n5. 浇在肉片上\n6. 撒葱花' },
+            { name: '虾仁滑蛋', type: 'seafood', taste: 'notspicy', style: 'cantonese', time: '15分钟', emoji: '🦐', ingredients: '虾仁200g、鸡蛋4个、葱花、盐、料酒', steps: '1. 虾仁用料酒腌制\n2. 鸡蛋打散\n3. 锅中放油，滑炒虾仁变色\n4. 倒入蛋液\n5. 蛋液半凝固时翻炒\n6. 加盐和葱花' },
+            { name: '家常豆腐', type: 'veg', taste: 'notspicy', style: 'home', time: '20分钟', emoji: '🫕', ingredients: '老豆腐1块、青椒、胡萝卜、木耳、生抽', steps: '1. 豆腐切三角块\n2. 锅中放油，煎豆腐至两面金黄\n3. 加入配菜翻炒\n4. 加生抽和少许水\n5. 焖煮3分钟\n6. 大火收汁' },
+            { name: '咖喱鸡肉饭', type: 'meat', taste: 'notspicy', style: 'home', time: '40分钟', emoji: '🍛', ingredients: '鸡腿肉300g、土豆、胡萝卜、洋葱、咖喱块', steps: '1. 鸡肉切块，蔬菜切丁\n2. 锅中放油，炒洋葱出香\n3. 加入鸡肉炒变色\n4. 加入土豆胡萝卜翻炒\n5. 加水没过食材，煮开\n6. 放入咖喱块搅匀煮浓稠' },
+            { name: '地三鲜', type: 'veg', taste: 'notspicy', style: 'dongbei', time: '25分钟', emoji: '🍆', ingredients: '茄子1个、土豆1个、青椒2个、蒜末、生抽', steps: '1. 茄子、土豆、青椒切块\n2. 锅中放油，分别炸至金黄\n3. 锅留底油，炒蒜末\n4. 放入所有食材\n5. 加生抽和少许水\n6. 翻炒均匀出锅' },
+            { name: '猪脚姜', type: 'meat', taste: 'notspicy', style: 'cantonese', time: '120分钟', emoji: '🍖', ingredients: '猪脚2只、姜500g、鸡蛋6个、甜醋2瓶', steps: '1. 猪脚焯水洗净\n2. 姜去皮拍碎\n3. 锅中不放油，炒姜至干\n4. 猪脚和姜放入砂锅\n5. 倒入甜醋没过食材\n6. 小火炖2小时，加入煮熟的鸡蛋' },
+            { name: '葱花饼', type: 'pastry', taste: 'notspicy', style: 'dongbei', time: '30分钟', emoji: '🫓', ingredients: '面粉300g、小葱、盐、油', steps: '1. 面粉加温水和面\n2. 擀成大薄片\n3. 刷油，撒盐和葱花\n4. 卷起切段\n5. 每段盘成饼\n6. 平底锅煎至两面金黄' },
+            { name: '皮蛋豆腐', type: 'veg', taste: 'notspicy', style: 'home', time: '10分钟', emoji: '🥒', ingredients: '内酯豆腐1盒、皮蛋2个、生抽、香油、葱花', steps: '1. 豆腐倒扣盘中\n2. 皮蛋切块摆在豆腐上\n3. 淋生抽和香油\n4. 撒葱花\n5. 完成' },
+            { name: '酸辣土豆丝', type: 'veg', taste: 'spicy', style: 'home', time: '15分钟', emoji: '🥔', ingredients: '土豆2个、干辣椒、蒜末、醋、盐', steps: '1. 土豆去皮切丝，泡水去淀粉\n2. 锅中放油，炒干辣椒和蒜末\n3. 放入土豆丝大火翻炒\n4. 加醋和盐\n5. 炒至断生出锅' },
+            { name: '排骨莲藕汤', type: 'soup', taste: 'notspicy', style: 'home', time: '90分钟', emoji: '🥣', ingredients: '排骨500g、莲藕2节、姜片、盐、葱花', steps: '1. 排骨焯水\n2. 莲藕去皮切块\n3. 砂锅加水烧开\n4. 放入排骨和姜片\n5. 大火烧开转小火炖60分钟\n6. 加入莲藕继续炖30分钟，加盐' },
+            { name: '白粥', type: 'congee', taste: 'notspicy', style: 'home', time: '60分钟', emoji: '🍚', ingredients: '大米100g、水', steps: '1. 大米洗净\n2. 加水大火烧开\n3. 转小火慢煮\n4. 期间搅拌防粘底\n5. 煮至浓稠即可\n6. 配小菜食用' },
+            { name: '八宝粥', type: 'congee', taste: 'notspicy', style: 'home', time: '90分钟', emoji: '🍚', ingredients: '大米、红豆、绿豆、花生、红枣、桂圆、莲子、冰糖', steps: '1. 所有豆类提前泡水4小时\n2. 所有食材洗净\n3. 加水大火烧开\n4. 转小火慢煮\n5. 煮至软烂\n6. 加冰糖搅匀' },
+            { name: '红糖小米粥', type: 'congee', taste: 'notspicy', style: 'home', time: '40分钟', emoji: '🍚', ingredients: '小米100g、红糖、红枣', steps: '1. 小米洗净\n2. 水烧开后放入小米\n3. 大火煮开转小火\n4. 加入红枣\n5. 煮至粘稠\n6. 加红糖搅匀' },
+            { name: '油泼面', type: 'noodle', taste: 'spicy', style: 'home', time: '20分钟', emoji: '🍜', ingredients: '宽面条200g、蒜末、葱花、辣椒面、生抽、醋', steps: '1. 面条煮熟捞出放碗中\n2. 放上蒜末、葱花、辣椒面\n3. 淋上生抽和少许醋\n4. 烧一勺热油，浇在辣椒面上\n5. 拌匀食用' },
+            { name: '担担面', type: 'noodle', taste: 'spicy', style: 'sichuan', time: '25分钟', emoji: '🍜', ingredients: '面条150g、猪肉末50g、芽菜、花生碎、芝麻酱1勺、辣椒油、花椒粉、生抽', steps: '1. 锅中油热，炒香肉末和芽菜\n2. 碗中放芝麻酱、辣椒油、花椒粉、生抽\n3. 面条煮熟捞入碗中\n4. 浇上炒好的肉末\n5. 撒花生碎拌匀' },
+            { name: '牛肉面', type: 'noodle', taste: 'spicy', style: 'home', time: '180分钟', emoji: '🍜', ingredients: '牛肉500g、面条、八角、桂皮、豆瓣酱、萝卜、香菜', steps: '1. 牛肉切块焯水\n2. 锅中放油，炒豆瓣酱\n3. 加入牛肉和热水\n4. 放入八角桂皮\n5. 小火炖至软烂\n6. 面条煮好，浇上牛肉和汤' },
+            { name: '番茄牛腩面', type: 'noodle', taste: 'notspicy', style: 'home', time: '120分钟', emoji: '🍜', ingredients: '牛腩500g、番茄3个、面条、姜片、料酒', steps: '1. 牛腩切块焯水\n2. 番茄去皮切块\n3. 锅中炒番茄出汁\n4. 加入牛腩和热水\n5. 炖至软烂\n6. 面条煮好浇上' },
+            { name: '热干面', type: 'noodle', taste: 'notspicy', style: 'home', time: '20分钟', emoji: '🍜', ingredients: '碱水面200g、芝麻酱、香油、生抽、酸豆角、萝卜丁、葱花', steps: '1. 面条煮至八成熟\n2. 淋香油拌匀晾凉\n3. 芝麻酱加香油调稀\n4. 吃时将面烫热\n5. 浇上芝麻酱\n6. 加配菜拌匀' },
+            { name: '炒年糕', type: 'noodle', taste: 'spicy', style: 'home', time: '15分钟', emoji: '🍜', ingredients: '年糕300g、青菜、鸡蛋、生抽、辣椒酱', steps: '1. 年糕切片，泡软\n2. 鸡蛋炒散盛出\n3. 锅中放油，炒青菜\n4. 加入年糕翻炒\n5. 加生抽和辣椒酱\n6. 放入鸡蛋炒匀' },
+            { name: '鱼香肉丝', type: 'meat', taste: 'spicy', style: 'sichuan', time: '25分钟', emoji: '🥩', ingredients: '猪里脊300g、木耳、胡萝卜、青椒、豆瓣酱、醋、糖', steps: '1. 里脊切丝，用淀粉腌制\n2. 调鱼香汁：醋、糖、生抽、淀粉\n3. 锅中放油，炒肉丝变色\n4. 加豆瓣酱炒出红油\n5. 加入配菜翻炒\n6. 倒入鱼香汁炒匀' },
+            { name: '麻辣香锅', type: 'meat', taste: 'spicy', style: 'sichuan', time: '30分钟', emoji: '🫕', ingredients: '各种蔬菜和肉类、豆瓣酱、干辣椒、花椒、芝麻', steps: '1. 所有食材焯水\n2. 锅中放油，炒豆瓣酱\n3. 加干辣椒和花椒炒香\n4. 放入所有食材翻炒\n5. 加盐和生抽调味\n6. 撒芝麻出锅' },
+            { name: '饺子', type: 'noodle', taste: 'notspicy', style: 'home', time: '60分钟', emoji: '🥟', ingredients: '面粉500g、猪肉馅300g、白菜、葱姜、生抽、香油', steps: '1. 面粉加水和面\n2. 肉馅加调料拌匀\n3. 白菜切碎挤水\n4. 肉和菜混合\n5. 擀皮包饺子\n6. 煮熟蘸醋食用' },
+            { name: '猪肉大葱包子', type: 'noodle', taste: 'notspicy', style: 'home', time: '90分钟', emoji: '🥟', ingredients: '面粉500g、猪肉馅300g、大葱、酵母、生抽、姜末', steps: '1. 面粉加酵母和面，醒发\n2. 肉馅加调料拌匀\n3. 大葱切碎加入\n4. 面团分成剂子\n5. 擀皮包包子\n6. 大火蒸15分钟' },
+            { name: '烧麦', type: 'noodle', taste: 'notspicy', style: 'home', time: '60分钟', emoji: '🥟', ingredients: '糯米300g、猪肉馅、香菇、生抽、蚝油、烧麦皮', steps: '1. 糯米提前泡水蒸熟\n2. 猪肉和香菇炒香\n3. 和糯米饭混合调味\n4. 用烧麦皮包好\n5. 上锅蒸10分钟\n6. 出锅食用' },
+            { name: '叉烧酥', type: 'pastry', taste: 'notspicy', style: 'cantonese', time: '60分钟', emoji: '🫓', ingredients: '面粉、黄油、叉烧馅', steps: '1. 油皮和油酥分别和好\n2. 擀皮包酥\n3. 折叠几次起层\n4. 包入叉烧馅\n5. 刷蛋液\n6. 烤箱180度烤25分钟' },
+            { name: '麻花', type: 'pastry', taste: 'notspicy', style: 'home', time: '40分钟', emoji: '🫓', ingredients: '面粉300g、鸡蛋1个、白糖、酵母', steps: '1. 面粉加鸡蛋白糖和面\n2. 醒发30分钟\n3. 擀成薄片切条\n4. 两条拧成麻花\n5. 油温160度炸至金黄\n6. 捞出控油' },
+            { name: '生煎包', type: 'pastry', taste: 'notspicy', style: 'home', time: '50分钟', emoji: '🫓', ingredients: '面粉300g、猪肉馅200g、酵母、葱花、芝麻', steps: '1. 面粉加酵母和面\n2. 肉馅调味\n3. 包成小包子\n4. 平底锅放油，摆入包子\n5. 煎到底部金黄\n6. 加水盖盖焖熟，撒芝麻葱花' }
+        ];
+
+        let selectedType = 'all';
+        let selectedTaste = 'all';
+        let selectedStyle = 'all';
+
+        function setupTags(containerId, dataAttr, callback) {
+            const container = document.getElementById(containerId);
+            container.addEventListener('click', (e) => {
+                if (e.target.classList.contains('tag')) {
+                    container.querySelectorAll('.tag').forEach(t => t.classList.remove('active'));
+                    e.target.classList.add('active');
+                    callback(e.target.dataset[dataAttr]);
+                }
+            });
+        }
+
+        setupTags('typeTags', 'type', (val) => selectedType = val);
+        setupTags('tasteTags', 'taste', (val) => selectedTaste = val);
+        setupTags('styleTags', 'style', (val) => selectedStyle = val);
+
+        function getFilteredDishes() {
+            return dishes.filter(d => {
+                if (selectedType !== 'all' && d.type !== selectedType) return false;
+                if (selectedTaste !== 'all' && d.taste !== selectedTaste) return false;
+                if (selectedStyle !== 'all' && d.style !== selectedStyle) return false;
+                return true;
+            });
+        }
+
+        function randomDish() {
+            const filtered = getFilteredDishes();
+            if (filtered.length === 0) {
+                alert('没有符合条件的菜品，请调整筛选条件');
+                return;
+            }
+            const dish = filtered[Math.floor(Math.random() * filtered.length)];
+            const emojis = { meat: '🥩', veg: '🥬', seafood: '🦐', noodle: '🍜', deli: '🍖', pastry: '🫓', soup: '🥣', congee: '🍚' };
+            const typeNames = { meat: '荤菜', veg: '素菜', seafood: '海鲜', noodle: '面食', deli: '熟食', pastry: '饼类', soup: '汤类', congee: '粥类' };
+            const tasteNames = { spicy: '辣', notspicy: '不辣' };
+            const styleNames = { sichuan: '川菜', cantonese: '粤菜', dongbei: '东北菜', chaoshan: '潮汕菜', home: '家常菜' };
+
+            document.getElementById('resultEmoji').textContent = dish.emoji || emojis[dish.type];
+            document.getElementById('resultName').textContent = dish.name;
+            document.getElementById('resultTags').innerHTML = `
+                <span class="result-tag">${typeNames[dish.type]}</span>
+                <span class="result-tag">${tasteNames[dish.taste]}</span>
+                <span class="result-tag">${styleNames[dish.style]}</span>
+            `;
+            document.getElementById('resultTime').textContent = '⏱️ ' + dish.time;
+            document.getElementById('resultIngredients').textContent = dish.ingredients;
+            document.getElementById('resultSteps').textContent = dish.steps;
+            document.getElementById('resultDetails').style.display = 'block';
+            document.getElementById('result').classList.add('show');
+        }
+
+        function showAddModal() {
+            document.getElementById('addModal').classList.add('show');
+        }
+
+        function closeAddModal() {
+            document.getElementById('addModal').classList.remove('show');
+        }
+
+        function addDish() {
+            const name = document.getElementById('addName').value.trim();
+            if (!name) { alert('请输入菜品名称'); return; }
+            const typeEmojis = { meat: '🥩', veg: '🥬', seafood: '🦐', noodle: '🍜', deli: '🍖', pastry: '🫓', soup: '🥣', congee: '🍚' };
+            dishes.push({
+                name,
+                type: document.getElementById('addType').value,
+                taste: document.getElementById('addTaste').value,
+                style: document.getElementById('addStyle').value,
+                time: '未知',
+                emoji: typeEmojis[document.getElementById('addType').value],
+                ingredients: document.getElementById('addIngredients').value || '暂无',
+                steps: document.getElementById('addSteps').value || '暂无'
+            });
+            closeAddModal();
+            document.getElementById('addName').value = '';
+            document.getElementById('addIngredients').value = '';
+            document.getElementById('addSteps').value = '';
+            alert('添加成功！');
+            renderDishes();
+        }
+    </script>
+</body>
+</html>
