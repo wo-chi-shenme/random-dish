@@ -43,14 +43,7 @@
             min-height: 150px;
             overflow: hidden;
         }
-        .result-content {
-            animation: rollIn 0.5s ease-out;
-        }
-        @keyframes rollIn {
-            0% { transform: translateY(-30px); opacity: 0; }
-            100% { transform: translateY(0); opacity: 1; }
-        }
-        .result-emoji { font-size: 48px; margin-bottom: 10px; }
+        .result-emoji { font-size: 48px; margin-bottom: 10px; transition: transform 0.1s; }
         .result-name { font-size: 22px; color: #333; font-weight: bold; margin-bottom: 5px; }
         .result-tags { display: flex; justify-content: center; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
         .result-tag { font-size: 11px; padding: 3px 8px; border-radius: 10px; }
@@ -211,6 +204,11 @@
         }
         .empty-hint { text-align: center; color: #999; padding: 20px; font-size: 13px; }
         .dish-count { font-size: 12px; color: #999; text-align: right; margin-bottom: 10px; }
+        @keyframes shake {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .shake { animation: shake 0.1s ease-in-out; }
     </style>
 </head>
 <body>
@@ -250,20 +248,18 @@
             </div>
         </div>
         <div class="result-card" id="resultCard">
-            <div id="resultContent">
-                <div class="result-emoji" id="resultEmoji">🤔</div>
-                <div class="result-name" id="resultName">点击下方按钮</div>
-                <div class="result-tags" id="resultTags"></div>
-                <div id="resultDetails" style="display:none">
-                    <div class="detail-time" id="resultTime"></div>
-                    <div class="detail-section">
-                        <div class="detail-title">📋 配料</div>
-                        <div class="detail-content" id="resultIngredients"></div>
-                    </div>
-                    <div class="detail-section">
-                        <div class="detail-title">👨‍🍳 做法</div>
-                        <div class="detail-content" id="resultSteps"></div>
-                    </div>
+            <div class="result-emoji" id="resultEmoji">🤔</div>
+            <div class="result-name" id="resultName">点击下方按钮</div>
+            <div class="result-tags" id="resultTags"></div>
+            <div id="resultDetails" style="display:none">
+                <div class="detail-time" id="resultTime"></div>
+                <div class="detail-section">
+                    <div class="detail-title">📋 配料</div>
+                    <div class="detail-content" id="resultIngredients"></div>
+                </div>
+                <div class="detail-section">
+                    <div class="detail-title">👨‍🍳 做法</div>
+                    <div class="detail-content" id="resultSteps"></div>
                 </div>
             </div>
         </div>
@@ -333,8 +329,8 @@
             </div>
             <div class="panel-content" id="panelParse">
                 <div class="parse-box">
-                    <textarea id="parseInput" placeholder="复制粘贴菜谱内容到这里...&#10;&#10;支持格式1：&#10;菜名：番茄炒蛋 配料：番茄2个、鸡蛋3个 做法：1.番茄切块 2.热锅凉油 时间：10分钟&#10;&#10;支持格式2（用中点分隔）：&#10;菜品1：糖醋排骨 · 类型：荤菜 · 口味：不辣 · 菜系：家常菜 · 时间：40分钟 · 配料：... · 做法：..."></textarea>
-                    <div class="parse-hint">💡 支持识别：菜名、配料、做法步骤、烹饪时间、类型、口味、菜系</div>
+                    <textarea id="parseInput" placeholder="复制粘贴菜谱内容到这里...&#10;&#10;支持格式：&#10;菜名：番茄炒蛋 配料：番茄2个、鸡蛋3个 做法：1.番茄切块 2.热锅凉油 时间：10分钟"></textarea>
+                    <div class="parse-hint">💡 支持识别：菜名、配料、做法步骤、烹饪时间</div>
                 </div>
                 <button class="btn-parse" onclick="parseAndAdd()">🔍 识别并添加</button>
                 <div id="parseResult" style="margin-top:15px"></div>
@@ -395,34 +391,43 @@
                 return true;
             });
         }
+        const typeNames = { meat: '荤菜', veg: '素菜', seafood: '海鲜', noodle: '面食', deli: '熟食', pastry: '饼类', soup: '汤类', congee: '粥类' };
+        const tasteNames = { spicy: '辣', mild: '不辣' };
+        const styleNames = { sichuan: '川菜', cantonese: '粤菜', dongbei: '东北菜', chaoshan: '潮汕菜', home: '家常菜' };
+        let isRolling = false;
         function randomDish() {
             const filtered = getFiltered();
-            if (filtered.length === 0) {
-                document.getElementById('resultEmoji').textContent = '😅';
-                document.getElementById('resultName').textContent = '没有符合条件的菜';
-                document.getElementById('resultTags').innerHTML = '';
-                document.getElementById('resultDetails').style.display = 'none';
-                return;
-            }
-            const dish = filtered[Math.floor(Math.random() * filtered.length)];
-            const resultContent = document.getElementById('resultContent');
-            resultContent.style.animation = 'none';
-            resultContent.offsetHeight;
-            resultContent.style.animation = 'rollIn 0.5s ease-out';
-            document.getElementById('resultEmoji').textContent = dish.emoji;
-            document.getElementById('resultName').textContent = dish.name;
-            const typeNames = { meat: '荤菜', veg: '素菜', seafood: '海鲜', noodle: '面食', deli: '熟食', pastry: '饼类', soup: '汤类', congee: '粥类' };
-            const tasteNames = { spicy: '辣', mild: '不辣' };
-            const styleNames = { sichuan: '川菜', cantonese: '粤菜', dongbei: '东北菜', chaoshan: '潮汕菜', home: '家常菜' };
-            document.getElementById('resultTags').innerHTML =
-                '<span class="result-tag tag-' + dish.type + '">' + typeNames[dish.type] + '</span>' +
-                '<span class="result-tag" style="background:#f5f5f5">' + tasteNames[dish.taste] + '</span>' +
-                '<span class="result-tag" style="background:#e8f5e9">' + styleNames[dish.style] + '</span>';
-            document.getElementById('resultTime').textContent = '⏱️ ' + dish.time;
-            document.getElementById('resultIngredients').textContent = dish.ingredients;
-            document.getElementById('resultSteps').textContent = dish.steps;
-            document.getElementById('resultDetails').style.display = 'block';
-            document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            if (filtered.length === 0) { alert('当前筛选没有菜品，请先添加~'); return; }
+            if (isRolling) return;
+            isRolling = true;
+            const emoji = document.getElementById('resultEmoji');
+            const name = document.getElementById('resultName');
+            const tags = document.getElementById('resultTags');
+            const details = document.getElementById('resultDetails');
+            const time = document.getElementById('resultTime');
+            const ingredients = document.getElementById('resultIngredients');
+            const steps = document.getElementById('resultSteps');
+            let count = 0;
+            const interval = setInterval(() => {
+                const dish = filtered[Math.floor(Math.random() * filtered.length)];
+                emoji.textContent = dish.emoji || '🍽️';
+                emoji.classList.add('shake');
+                name.textContent = dish.name;
+                tags.innerHTML = '<span class="result-tag tag-' + dish.type + '">' + typeNames[dish.type] + '</span>' +
+                    '<span class="result-tag" style="background:#f5f5f5">' + tasteNames[dish.taste] + '</span>' +
+                    '<span class="result-tag" style="background:#e8f5e9">' + styleNames[dish.style] + '</span>';
+                details.style.display = 'block';
+                time.textContent = '⏱️ ' + dish.time;
+                ingredients.textContent = dish.ingredients;
+                steps.textContent = dish.steps;
+                count++;
+                if (count >= 15) {
+                    clearInterval(interval);
+                    emoji.classList.remove('shake');
+                    isRolling = false;
+                    document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 80);
         }
         function switchPanel(name, btn) {
             document.querySelectorAll('.panel-content').forEach(p => p.classList.remove('active'));
@@ -437,8 +442,6 @@
                 list.innerHTML = '<div class="empty-hint">还没有菜品，快来添加吧~</div>';
                 return;
             }
-            const typeNames = { meat: '荤菜', veg: '素菜', seafood: '海鲜', noodle: '面食', deli: '熟食', pastry: '饼类', soup: '汤类', congee: '粥类' };
-            const tasteNames = { spicy: '辣', mild: '不辣' };
             list.innerHTML = dishes.map((d, i) =>
                 '<div class="dish-item"><div class="dish-info"><span class="dish-name">' + d.emoji + ' ' + d.name + '</span><div class="dish-tags"><span class="dish-tag tag-' + d.type + '">' + typeNames[d.type] + '</span><span class="dish-tag" style="background:#f5f5f5">' + tasteNames[d.taste] + '</span></div></div><button class="btn-edit" onclick="editDish(' + i + ')">✏️</button><button class="btn-delete" onclick="deleteDish(' + i + ')">×</button></div>'
             ).join('');
@@ -482,62 +485,61 @@
         function parseAndAdd() {
             const text = document.getElementById('parseInput').value.trim();
             if (!text) { alert('请粘贴菜谱内容'); return; }
-            let name = '', ingredients = '', steps = '', time = '未知', type = 'meat', taste = 'mild', style = 'home';
-            const nameMatch = text.match(/(?:菜品\d+[：:]\s*|菜名[：:]\s*)(.+?)(?:\s*·|\s*$)/);
-            if (nameMatch) name = nameMatch[1].trim();
-            const typeMatch = text.match(/类型[：:]\s*(.+?)(?:\s*·|\s*$)/m);
-            if (typeMatch) {
-                const typeText = typeMatch[1].trim();
-                if (/荤|肉|猪|牛|羊|鸡|鸭|鱼/.test(typeText)) type = 'meat';
-                else if (/素|菜|豆|蛋|茄|瓜|菇/.test(typeText)) type = 'veg';
-                else if (/海鲜|虾|蟹|贝/.test(typeText)) type = 'seafood';
-                else if (/面|粉|米/.test(typeText)) type = 'noodle';
-                else if (/熟食|卤/.test(typeText)) type = 'deli';
-                else if (/饼/.test(typeText)) type = 'pastry';
-                else if (/汤|羹/.test(typeText)) type = 'soup';
-                else if (/粥/.test(typeText)) type = 'congee';
-            }
-            const tasteMatch = text.match(/口味[：:]\s*(.+?)(?:\s*·|\s*$)/m);
-            if (tasteMatch) {
-                const tasteText = tasteMatch[1].trim();
-                if (/辣|麻辣|香辣|酸辣/.test(tasteText)) taste = 'spicy';
-                else taste = 'mild';
-            }
-            const styleMatch = text.match(/菜系[：:]\s*(.+?)(?:\s*·|\s*$)/m);
-            if (styleMatch) {
-                const styleText = styleMatch[1].trim();
-                if (/川/.test(styleText)) style = 'sichuan';
-                else if (/粤|广/.test(styleText)) style = 'cantonese';
-                else if (/东北/.test(styleText)) style = 'dongbei';
-                else if (/潮汕/.test(styleText)) style = 'chaoshan';
-                else style = 'home';
-            }
-            const ingMatch = text.match(/配料[：:]\s*(.+?)(?:\s*·|做法|$)/s);
-            if (ingMatch) ingredients = ingMatch[1].trim();
-            const stepMatch = text.match(/做法[：:]\s*([\s\S]+?)(?:时间[：:]|$)/);
-            if (stepMatch) steps = stepMatch[1].trim();
-            const timeMatch = text.match(/时间[：:]\s*(.+?)(?:\s*·|\s*$)/m);
-            if (timeMatch) time = timeMatch[1].trim();
-            if (!ingredients && !steps) {
-                const parts = text.split(/[·，,；;]/);
-                if (parts.length > 1) {
-                    const ingPart = text.match(/(?:排骨|肉|鸡|虾|豆腐|菜|蛋|面|粉|粥|汤|饼|瓜|茄|菇|土豆|黄瓜|番茄|花生|红薯|粉丝|大米|紫菜)[^·]*(?:[·])/);
+            let name = '', ingredients = '', steps = '', time = '';
+            const markers = ['菜名', '名称', '配料', '食材', '材料', '做法', '步骤', '方法', '时间'];
+            const segments = [];
+            for (let i = 0; i < markers.length; i++) {
+                const idx = text.indexOf(markers[i]);
+                if (idx !== -1) {
+                    let colonIdx = text.indexOf('：', idx);
+                    if (colonIdx === -1 || colonIdx > idx + 4) colonIdx = text.indexOf(':', idx);
+                    if (colonIdx === -1 || colonIdx > idx + 4) colonIdx = idx + markers[i].length;
+                    segments.push({ marker: markers[i], valueStart: colonIdx + 1 });
                 }
             }
-            if (!name) {
-                const lines = text.split('\n').filter(function(l) { return l.trim(); });
-                if (lines.length > 0) { name = lines[0].replace(/菜品\d+[：:]\s*/, '').substring(0, 20); }
+            segments.sort((a, b) => a.valueStart - b.valueStart);
+            for (let i = 0; i < segments.length; i++) {
+                const seg = segments[i];
+                const nextStart = i < segments.length - 1 ? segments[i + 1].valueStart : text.length;
+                const value = text.substring(seg.valueStart, nextStart).trim();
+                if (seg.marker === '菜名' || seg.marker === '名称') name = value;
+                else if (seg.marker === '配料' || seg.marker === '食材' || seg.marker === '材料') ingredients = value;
+                else if (seg.marker === '做法' || seg.marker === '步骤' || seg.marker === '方法') steps = value;
+                else if (seg.marker === '时间') time = value;
             }
-            if (!name) { alert('未能识别菜名'); return; }
-            if (!typeMatch) type = guessType(text);
-            if (!tasteMatch) taste = guessTaste(text);
-            if (!styleMatch) style = guessStyle(text);
+            if (!time) { const t = text.match(/(\d+\s*分钟|\d+\s*小时)/); if (t) time = t[1]; }
+            if (!name) name = '未命名菜品';
+            if (!ingredients) ingredients = '待补充';
+            if (!steps) steps = '待补充';
             const emojis = { meat: '🥩', veg: '🥬', seafood: '🦐', noodle: '🍜', deli: '🍖', pastry: '🫓', soup: '🥣', congee: '🍚' };
-            dishes.push({ name: name, type: type, taste: taste, style: style, time: time, emoji: emojis[type] || '🍽️', ingredients: ingredients || '暂无', steps: steps || '暂无' });
-            save(); renderDishList();
-            document.getElementById('parseResult').innerHTML = '<div style="color:#28a745; padding:10px; background:#e8f5e9; border-radius:8px;">✅ 已添加：' + name + '</div>';
-            document.getElementById('parseInput').value = '';
-            setTimeout(function() { document.getElementById('parseResult').innerHTML = ''; }, 3000);
+            const type = guessType(text);
+            const dish = {
+                name: name.slice(0, 20), type: type, taste: guessTaste(text), style: guessStyle(text),
+                time: time || '未知', emoji: emojis[type] || '🍽️', ingredients, steps
+            };
+            document.getElementById('parseResult').innerHTML =
+                '<div style="background:#f0f8ff;padding:15px;border-radius:10px;">' +
+                '<div style="font-weight:bold;margin-bottom:8px;">✅ 识别结果：</div>' +
+                '<div><b>菜名：</b>' + dish.name + '</div>' +
+                '<div><b>类型：</b>' + typeNames[dish.type] + '</div>' +
+                '<div><b>口味：</b>' + tasteNames[dish.taste] + '</div>' +
+                '<div><b>时间：</b>' + dish.time + '</div>' +
+                '<div><b>配料：</b>' + dish.ingredients + '</div>' +
+                '<div><b>做法：</b>' + dish.steps + '</div>' +
+                '<div style="margin-top:12px;">' +
+                '<button onclick="confirmParse()" style="background:#28a745;color:white;border:none;padding:8px 20px;border-radius:8px;cursor:pointer;font-size:14px;">确认添加</button>' +
+                '<button onclick="document.getElementById(\'parseResult\').innerHTML=\'\'" style="background:#666;color:white;border:none;padding:8px 20px;border-radius:8px;cursor:pointer;margin-left:8px;font-size:14px;">取消</button>' +
+                '</div></div>';
+            window._tempDish = dish;
+        }
+        function confirmParse() {
+            if (window._tempDish) {
+                dishes.push(window._tempDish);
+                save(); renderDishList();
+                document.getElementById('parseResult').innerHTML = '<div style="color:#28a745;text-align:center;padding:10px;">✅ 添加成功！</div>';
+                document.getElementById('parseInput').value = '';
+                setTimeout(function() { document.getElementById('parseResult').innerHTML = ''; }, 2000);
+            }
         }
         function guessType(text) {
             if (/海鲜|虾|蟹|鱼|贝|鱿/.test(text)) return 'seafood';
